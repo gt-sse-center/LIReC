@@ -24,8 +24,8 @@ def run_lirec():
     main.run()
 
 def main():
-    install_system_dependencies()
-    install_python()
+    # install_system_dependencies()
+    #install_python()
     install_lirec()
     run_lirec()
 
