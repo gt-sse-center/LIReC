@@ -19,6 +19,7 @@ def install_lirec():
 
 def run_lirec():
     # Assuming LIReC has an entry point in its package
+    # Run LIReC (same as from run_jobs.py)
     from LIReC import main
     main.run()
 
