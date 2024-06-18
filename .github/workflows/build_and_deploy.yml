@@ -63,10 +63,10 @@ jobs:
         with:
           python-version: "3.11.7"
       - name: "Install system dependencies on macOS"
-          if: runner.os == 'macOS'
-          run: |
-            brew install postgresql
-            brew link postgresql
+        if: runner.os == 'macOS'
+        run: |
+          brew install postgresql
+          brew link postgresql
       - name: "Install dependencies and cxFreeze"
         run: |
             pip install -e .
