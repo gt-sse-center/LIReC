@@ -12,8 +12,6 @@ all of the configuration as parameters after 'query_data' does the trick.
 from __future__ import annotations
 from dataclasses import dataclass
 from importlib import import_module
-from logging import getLogger
-from logging.config import fileConfig
 from math import inf, ceil
 from multiprocessing import Pool, Manager, Value
 from multiprocessing.managers import ValueProxy
@@ -23,14 +21,14 @@ from time import sleep, time
 from traceback import format_exc
 from typing import Tuple, Dict, Any
 from types import ModuleType
+from LIReC.lib.logger import *
 
-LOGGER_NAME = 'job_logger'
 NO_CRASH = True
 
 @dataclass
 class Message:
     is_kill_message: bool
-    module_path: str
+    module_id: str
     parameters: list
 
     @staticmethod
@@ -38,9 +36,12 @@ class Message:
         return Message(True, '', [])
 
     @staticmethod
-    def get_execution_message(module_path: str, parameters: list) -> Message:
-        return Message(False, module_path, parameters)
+    def get_execution_message(module_id: str, parameters: list) -> Message:
+        return Message(False, module_id, parameters)
 
+
+def _import(module_id):
+    return import_module(module_id[module_id.index('@')+1:])
 
 class WorkerPool:
     manager: Manager
@@ -51,7 +52,7 @@ class WorkerPool:
     main_jobs: int
 
     def __init__(self: WorkerPool, pool_size: int = 0) -> None:
-        fileConfig('LIReC/logging.config', defaults={'log_filename': 'pool'})
+        configure_logger('pool')
         self.manager = Manager()
         self.running = self.manager.Value('i', 0)
         self.job_queue = self.manager.Queue()
@@ -62,16 +63,18 @@ class WorkerPool:
     def stop(self: WorkerPool) -> None:
         self.running.value = 0
 
-    def start(self: WorkerPool, modules: Dict[str, Any]): # -> module_path, timings
+    def start(self: WorkerPool, modules: Dict[str, Any]): # -> module_id, timings
         self.main_jobs = len(modules)
         self.running.value = 1
         results = []
 
-        for module_path, module_config in modules:
-            self.result_queues[module_path] = self.manager.Queue()
+        for i, (module_path, module_config) in enumerate(modules):
+            module_id = f'{i}@{module_path}'
+            self.result_queues[module_id] = self.manager.Queue()
+            result_queue = self.result_queues[module_id] # must be initialized first?
             results.append(self.pool.apply_async(
                 WorkerPool.run_job,
-                (self.running, self.job_queue, self.result_queues[module_path], module_path, module_config)
+                (self.running, self.job_queue, result_queue, module_id, module_config)
             ))
         
         self.read_queue()
@@ -86,18 +89,18 @@ class WorkerPool:
 
             if message.is_kill_message:
                 self.main_jobs -= 1
-                getLogger(LOGGER_NAME).info('Killed')
+                logger.info('Killed')
             else:
                 self.pool.apply_async(
                     WorkerPool.run_sub_job,
-                    (message.module_path, message.parameters),
-                    callback=lambda result: self.result_queues[message.module_path].put(result)
+                    (message.module_id, message.parameters),
+                    callback=lambda result: self.result_queues[message.module_id].put(result)
                 )
         self.pool.close()
         self.pool.join()
 
     @staticmethod
-    def run_module(module: ModuleType, module_path: str, job_queue: Queue, result_queue: Queue, run_async: bool, async_cores: int, args: Dict[str, Any]) -> bool:
+    def run_module(module: ModuleType, module_id: str, job_queue: Queue, result_queue: Queue, run_async: bool, async_cores: int, args: Dict[str, Any]) -> bool:
         try:
             if not hasattr(module, 'run_query'):
                 module.execute_job(**args)
@@ -117,21 +120,21 @@ class WorkerPool:
                 for i, queried_chunk in enumerate(WorkerPool.split_parameters(queried_data, async_cores, keep_unsplit)):
                     if send_index:
                         queried_chunk = (i, async_cores, queried_chunk)
-                    job_queue.put(Message.get_execution_message(module_path, (queried_chunk, args) if extra_args else queried_chunk))
+                    job_queue.put(Message.get_execution_message(module_id, (queried_chunk, args) if extra_args else queried_chunk))
                 results = []
                 while len(results) < async_cores:
                     results.append(result_queue.get())
             module.summarize_results(results)
             return True
         except:
-            getLogger(LOGGER_NAME).info(f'Error in module {module_path}: {format_exc()}')
+            logger.info(f'Error in module {module_id}: {format_exc()}')
             return False
 
     @staticmethod
-    def run_job(running, job_queue, result_queue, module_path, module_config) -> Tuple[str, float]:
+    def run_job(running, job_queue, result_queue, module_id, module_config) -> Tuple[str, float]:
         try:
-            fileConfig('LIReC/logging.config', defaults={'log_filename': 'pool_run_job'})
-            module = import_module(module_path)
+            configure_logger('pool_run_job')
+            module = _import(module_id)
             args = module_config.get('args', {})
             timings = []
             iterations = module_config.get('iterations', inf)
@@ -140,7 +143,7 @@ class WorkerPool:
             iteration = 0
             while running.value and iteration < iterations:
                 start_time = time()
-                worked = WorkerPool.run_module(module, module_path, job_queue, result_queue, run_async, async_cores, args)
+                worked = WorkerPool.run_module(module, module_id, job_queue, result_queue, run_async, async_cores, args)
                 if not NO_CRASH and not worked:
                     break
                 if len(timings) < 30:
@@ -148,14 +151,14 @@ class WorkerPool:
                 iteration += 1
             
             job_queue.put(Message.get_kill_message())
-            return module_path, timings
+            return module_id, timings
         except:
-            getLogger(LOGGER_NAME).info(f'Error in job {module_path}: {format_exc()}')
-            return module_path, []
+            logger.info(f'Error in job {module_id}: {format_exc()}')
+            return module_id, []
 
     @staticmethod
-    def run_sub_job(module_path, parameters):
-        module = import_module(module_path)
+    def run_sub_job(module_id, parameters):
+        module = _import(module_id)
         if parameters:
             result = module.execute_job(parameters[0], **parameters[1]) if getattr(module, 'EXECUTE_NEEDS_ARGS', False) else module.execute_job(parameters)
         else:
