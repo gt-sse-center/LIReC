@@ -29,12 +29,13 @@ def print_status():
 def run_lirec():
     # Assuming LIReC has an entry point in its package
     # Run LIReC (same as from run_jobs.py)
-    from LIReC import main
-    main.run()
+    from LIReC.jobs import run
+    run.main()
 
 def main():
     # install_system_dependencies()
     #install_python()
+    print_status()
     install_lirec()
     run_lirec()
 
