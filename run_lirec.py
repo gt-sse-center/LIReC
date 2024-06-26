@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import time
 
 def install_system_dependencies():
     # Install system packages
@@ -17,6 +18,14 @@ def install_lirec():
     # Install LIReC from GitHub
     subprocess.check_call([sys.executable, "-m", "pip", "install", "git+https://github.com/RamanujanMachine/LIReC.git"])
 
+def print_status():
+    while True:
+        print("LIReC is running...")
+        time.sleep(30)  # Sleep for 30 seconds
+
+    # Run status printer in parallel
+    import threading
+    threading.Thread(target=print_status, daemon=True).start()
 def run_lirec():
     # Assuming LIReC has an entry point in its package
     # Run LIReC (same as from run_jobs.py)
