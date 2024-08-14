@@ -141,7 +141,7 @@ jobs:
     - name: 'Unpack binaries'
       if: ${{ ! vars.DO_NOT_DEPLOY }}
       run: |
-        ssh boinc 'sudo su - boincadm -c "cd /home/boincadm/projects/boinc/apps/${{env.APP_DIR}}/${{env.NEW_VERSION}} && unzip -o -q -d ${{env.BOINC_PLATFORM}} ${{env.BOINC_PLATFORM}}.zip && rm ${{env.BOINC_PLATFORM}}.zip"'
+        ssh boinc 'sudo su - boincadm -c "cd /home/boincadm/projects/boinc/apps/${{env.APP_DIR}}/${{env.NEW_VERSION}} && unzip -o -q -d ${{env.BOINC_PLATFORM}} ${{env.BOINC_PLATFORM}}.zip && rm -f ${{env.BOINC_PLATFORM}}.zip"'
     - name: 'Run BOINC update versions'
       if: ${{ ! vars.DO_NOT_DEPLOY }}
       run: |
