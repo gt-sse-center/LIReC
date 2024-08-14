@@ -31,9 +31,12 @@ jobs:
         id: new_version_number
         env:
           BOINC_APP_DESCRIPTION: ${{ inputs.boinc_app_description }}
+          SPECIFIED_VERSION: ${{ inputs.specified_version }}
         run: |
-          if [[ "${{ inputs.specified_version }}" ]]; then
-            NEW_VERSION="${{ inputs.specified_version }}"
+          echo "BOINC_APP_DESCRIPTION: $BOINC_APP_DESCRIPTION"
+          echo "SPECIFIED_VERSION: $SPECIFIED_VERSION"
+          if [[ -n "$SPECIFIED_VERSION" ]]; then
+            NEW_VERSION="$SPECIFIED_VERSION"
             echo "Using specified version: $NEW_VERSION"
           else
             VERSION=$(sed -n "/<th class=\"bg-primary\" colspan=4>$(printf '%s\n' "$BOINC_APP_DESCRIPTION" | sed 's/[\^$.|?*+(){}]/\\&/g')<\/th>/,/<td>\([0-9].[0-9]\)/p" apps.php | sed -n 's/.*<td>\([0-9][0-9]*\.[0-9]*\)<\/td>.*/\1/ p')
