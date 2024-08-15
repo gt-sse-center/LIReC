@@ -71,9 +71,15 @@ jobs:
       with:
         name: ${{ env.PLATFORM }}
         path: app.${{ env.NEW_VERSION }}-${{ env.PLATFORM }}
-    - name: "Zip build output"
+    - name: "sign binary and Zip build output"
+      env:
+        SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
       run: |
+        echo "$SIGNING_KEY" > key
+        ls
+        ./boinc/sign_executable app.$NEW_VERSION-$PLATFORM/$WRAPPER.exe key > app.$NEW_VERSION-$PLATFORM/$WRAPPER.exe.sig
         zip -r app.$NEW_VERSION-$PLATFORM.zip app.$NEW_VERSION-$PLATFORM
+        ls
     - name: "Sign files"
       env:
         SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
@@ -141,7 +147,9 @@ jobs:
     - name: 'Unpack binaries'
       if: ${{ ! vars.DO_NOT_DEPLOY }}
       run: |
-        ssh boinc 'sudo su - boincadm -c "cd /home/boincadm/projects/boinc/apps/${{env.APP_DIR}}/${{env.NEW_VERSION}} && unzip -o -q -d ${{env.BOINC_PLATFORM}} ${{env.BOINC_PLATFORM}}.zip && rm -f ${{env.BOINC_PLATFORM}}.zip"'
+        ssh boinc 'sudo su - boincadm -c "cd /home/boincadm/projects/boinc/apps/${{env.APP_DIR}}/${{env.NEW_VERSION}} && unzip -o -q -d ${{env.BOINC_PLATFORM}} ${{env.BOINC_PLATFORM}}.zip && rm -f ${{env.BOINC_PLATFORM}}.zip && ls"'
+        ssh boinc 'sudo su - boincadm -c "cd /home/boincadm/projects/boinc/apps/${{env.APP_DIR}}/${{env.NEW_VERSION}}/${{env.BOINC_PLATFORM}} && ls && unzip -o -q -d app.$NEW_VERSION-$PLATFORM app.$NEW_VERSION-$PLATFORM.zip && ls &&mv app.$NEW_VERSION-$PLATFORM/* . && ls"'
+
     - name: 'Run BOINC update versions'
       if: ${{ ! vars.DO_NOT_DEPLOY }}
       run: |
