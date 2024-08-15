@@ -147,8 +147,8 @@ jobs:
     - name: 'Unpack binaries'
       if: ${{ ! vars.DO_NOT_DEPLOY }}
       run: |
-        ssh boinc 'sudo su - boincadm -c "cd /home/boincadm/projects/boinc/apps/${{env.APP_DIR}}/${{env.NEW_VERSION}} && unzip -o -q -d ${{env.BOINC_PLATFORM}} ${{env.BOINC_PLATFORM}}.zip && rm -f ${{env.BOINC_PLATFORM}}.zip && ls"'
-        ssh boinc 'sudo su - boincadm -c "cd /home/boincadm/projects/boinc/apps/${{env.APP_DIR}}/${{env.NEW_VERSION}}/${{env.BOINC_PLATFORM}} && ls && unzip -o -q -d app.$NEW_VERSION-$PLATFORM app.$NEW_VERSION-$PLATFORM.zip && ls &&mv app.$NEW_VERSION-$PLATFORM/* . && ls"'
+        ssh boinc 'sudo su - boincadm -c "cd /home/boincadm/projects/boinc/apps/${{env.APP_DIR}}/${{env.NEW_VERSION}} && ls && unzip -o -q -d ${{env.BOINC_PLATFORM}} ${{env.BOINC_PLATFORM}}.zip && rm -f ${{env.BOINC_PLATFORM}}.zip && ls"'
+        ssh boinc 'sudo su - boincadm -c "cd /home/boincadm/projects/boinc/apps/${{env.APP_DIR}}/${{env.NEW_VERSION}}/${{env.BOINC_PLATFORM}} && ls && unzip -o -q -d app.${{env.NEW_VERSION}}-${{inputs.platform}} app.${{env.NEW_VERSION}}-${{inputs.platform}}.zip && ls && mv app.${{env.NEW_VERSION}}-${{inputs.platform}}/* . && ls"'
 
     - name: 'Run BOINC update versions'
       if: ${{ ! vars.DO_NOT_DEPLOY }}
