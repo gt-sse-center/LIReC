@@ -78,6 +78,8 @@ jobs:
         echo "$SIGNING_KEY" > key
         ls
         ./boinc/sign_executable app.$NEW_VERSION-$PLATFORM/$WRAPPER.exe key > app.$NEW_VERSION-$PLATFORM/$WRAPPER.exe.sig
+        ./boinc/sign_executable app.$NEW_VERSION-$PLATFORM/python311.dll key > app.$NEW_VERSION-$PLATFORM/python311.dll.sig
+        ./boinc/sign_executable app.$NEW_VERSION-$PLATFORM/python3.dll key > app.$NEW_VERSION-$PLATFORM/python3.dll.sig
         zip -r app.$NEW_VERSION-$PLATFORM.zip app.$NEW_VERSION-$PLATFORM
         ls
     - name: "Sign files"
