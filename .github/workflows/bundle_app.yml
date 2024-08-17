@@ -106,7 +106,7 @@ jobs:
       run: |
         # Exclude the WRAPPER.exe and WRAPPER.exe.sig from this zip because they are included in app.$NEW_VERSION-$PLATFORM.zip
         # Including them again could cause issues with duplicate entries when updating versions on the BOINC server.
-        zip -r --junk-paths $BOINC_PLATFORM.zip . -i version.xml WRAPPER.exe WRAPPER.exe.sig job.$NEW_VERSION-$PLATFORM.xml job.$NEW_VERSION-$PLATFORM.xml.sig app.$NEW_VERSION-$PLATFORM.zip app.$NEW_VERSION-$PLATFORM.zip.sig
+        zip -r --junk-paths $BOINC_PLATFORM.zip . -i version.xml job.$NEW_VERSION-$PLATFORM.xml job.$NEW_VERSION-$PLATFORM.xml.sig $WRAPPER.exe $WRAPPER.exe.sig app.$NEW_VERSION-$PLATFORM.zip app.$NEW_VERSION-$PLATFORM.zip.sig
     - name: "Create app bundle (non-Windows)"
       if: ${{ inputs.platform != 'win' }}
       run: |
@@ -152,7 +152,7 @@ jobs:
       if: ${{ ! vars.DO_NOT_DEPLOY }}
       run: |
         ssh boinc 'sudo su - boincadm -c "cd /home/boincadm/projects/boinc/apps/${{env.APP_DIR}}/${{env.NEW_VERSION}} && ls && unzip -o -q -d ${{env.BOINC_PLATFORM}} ${{env.BOINC_PLATFORM}}.zip && rm -f ${{env.BOINC_PLATFORM}}.zip && ls"'
-        ssh boinc 'sudo su - boincadm -c "cd /home/boincadm/projects/boinc/apps/${{env.APP_DIR}}/${{env.NEW_VERSION}}/${{env.BOINC_PLATFORM}} && ls && unzip -o -q app.${{env.NEW_VERSION}}-${{inputs.platform}}.zip && ls "'
+        #ssh boinc 'sudo su - boincadm -c "cd /home/boincadm/projects/boinc/apps/${{env.APP_DIR}}/${{env.NEW_VERSION}}/${{env.BOINC_PLATFORM}} && ls && unzip -o -q app.${{env.NEW_VERSION}}-${{inputs.platform}}.zip && ls "'
         #ssh boinc 'sudo su - boincadm -c "cd /home/boincadm/projects/boinc/apps/${{env.APP_DIR}}/${{env.NEW_VERSION}}/${{env.BOINC_PLATFORM}} && ls && unzip -o -q app.${{env.NEW_VERSION}}-${{inputs.platform}}.zip && ls && mv app.${{env.NEW_VERSION}}-${{inputs.platform}}/* . && ls"'
 
     - name: 'Run BOINC update versions'
