@@ -12,11 +12,5 @@
         <physical_name>app.{{VERSION}}-{{PLATFORM}}.zip</physical_name>
         <logical_name>app.zip</logical_name>
     </file>
-    <file>
-        <physical_name>python311.dll</physical_name>
-    </file>
-    <file>
-        <physical_name>python3.dll</physical_name>
-    </file>
     <is_wrapper/>
 </version>
