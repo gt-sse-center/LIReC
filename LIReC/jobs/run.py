@@ -11,7 +11,10 @@ MOD_PATH = 'LIReC.jobs.job_%s'
 
 def main() -> None:
     os.makedirs(os.path.join(os.getcwd(), 'logs'), exist_ok=True)
+    print('Starting instance of WorkerPool...')
     worker_pool = WorkerPool()
+    print('worker_pool.start([(MOD_PATH % name, config) for name, config in configuration["jobs_to_run"]]):')
+    print([(MOD_PATH % name, config) for name, config in configuration['jobs_to_run']])
     results = worker_pool.start([(MOD_PATH % name, config) for name, config in configuration['jobs_to_run']])
 
     for module_path, timings in results:

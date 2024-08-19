@@ -1,7 +1,7 @@
 import subprocess
 import sys
 import time
-import threading
+from LIReC.jobs import run
 
 
 def install_system_dependencies():
@@ -28,7 +28,7 @@ def print_status():
 def run_lirec():
     # Assuming LIReC has an entry point in its package
     # Run LIReC (same as from run_jobs.py)
-    from LIReC.jobs import run
+    # from LIReC.jobs import run
     print("Running run.main()")
     run.main()
 
