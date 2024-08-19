@@ -50,13 +50,16 @@ class WorkerPool:
     result_queues: Dict[str, Queue]
 
     def __init__(self: WorkerPool) -> None:
+        print('Starting __init__ WorkerPool ...')
         self.manager = Manager()
         self.job_queue = self.manager.Queue()
         self.log_queue = self.manager.Queue()
         self.result_queues = {}
 
     def start(self: WorkerPool, modules: Dict[str, Any]): # -> module_id, timings
+        print('Starting WorkerPool ...')
         Process(target=print_logger, args=(self.log_queue,)).start()
+        print("Process started")
         pipes = []
         for i, (module_path, module_config) in enumerate(modules):
             module_id = f'{i}@{module_path}'

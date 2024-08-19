@@ -29,6 +29,7 @@ def run_lirec():
     # Assuming LIReC has an entry point in its package
     # Run LIReC (same as from run_jobs.py)
     from LIReC.jobs import run
+    print("Running run.main()")
     run.main()
 
 def main():
@@ -39,8 +40,8 @@ def main():
     # run_lirec()
 
     # Start the print_status function in a background thread
-    status_thread = threading.Thread(target=print_status, daemon=True)
-    status_thread.start()
+    # status_thread = threading.Thread(target=print_status, daemon=True)
+    # status_thread.start()
 
     # The rest of the functions can now execute without being blocked by print_status
     # install_python()
