@@ -44,7 +44,7 @@ def main():
 
     # The rest of the functions can now execute without being blocked by print_status
     # install_python()
-    install_lirec()
+    # install_lirec()
     run_lirec()
 
 if __name__ == "__main__":
