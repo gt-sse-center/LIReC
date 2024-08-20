@@ -29,7 +29,8 @@ def run_lirec():
     # Assuming LIReC has an entry point in its package
     # Run LIReC (same as from run_jobs.py)
     # from LIReC.jobs import run
-    print("Running run.main()")
+    # print("Running run.main()")
+    sys.stderr.write("Running run.main()\n")
     run.main()
 
 def main():
