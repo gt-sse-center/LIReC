@@ -18,7 +18,7 @@ def setup_logging():
     logger.setLevel(logging.DEBUG)  # Set the logging level to debug to capture all messages
 
     # Create handlers for writing to file and stderr
-    file_handler = logging.FileHandler('logs/stdout.log')
+    file_handler = logging.FileHandler('stderr.txt')
     stream_handler = logging.StreamHandler()
 
     # Set the level and format for both handlers
