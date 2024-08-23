@@ -37,6 +37,11 @@ def main() -> None:
     os.makedirs(os.path.join(os.getcwd(), 'logs'), exist_ok=True)
     logger = setup_logging()  # Set up logging configuration
 
+    # Read from stdin if any data is present
+    stdin_data = sys.stdin.readline().strip()
+    if stdin_data:
+        logger.info(f"Received via stdin: {stdin_data}")
+
     # Log to both file and stderr
     logger.info("logger.info Running run.main()")
     logger.error("logger.error This is an error message with details.")
