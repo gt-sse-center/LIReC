@@ -1,5 +1,6 @@
 '''
 '''
+import json
 import signal
 #import numpy as np
 import os
@@ -37,10 +38,21 @@ def main() -> None:
     os.makedirs(os.path.join(os.getcwd(), 'logs'), exist_ok=True)
     logger = setup_logging()  # Set up logging configuration
 
-    logger.error("sys.argv: ", sys.argv)
+    logger.error("sys.argv: %s", sys.argv)
     if len(sys.argv) >= 2:
         job_config_filename = sys.argv[1]
         logger.error("job_config_filename: %s", job_config_filename)
+        try:
+            with open(job_config_filename, 'r') as file:
+                job_config = json.load(file)
+                logger.info("Loaded job configuration: %s", json.dumps(job_config, indent=4))
+        except FileNotFoundError:
+            logger.error("File not found: %s", job_config_filename)
+        except json.JSONDecodeError:
+            logger.error("Error decoding JSON from the file: %s", job_config_filename)
+        except Exception as e:
+            logger.error("Error reading file %s: %s", job_config_filename, e)
+
 
 
 
