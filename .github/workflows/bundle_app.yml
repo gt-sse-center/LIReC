@@ -1,6 +1,7 @@
 name: 'Prepare Deployment Bundle'
 
 on:
+  workflow_dispatch:
   workflow_call:
     inputs:
       new_version:
