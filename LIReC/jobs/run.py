@@ -37,6 +37,13 @@ def main() -> None:
     os.makedirs(os.path.join(os.getcwd(), 'logs'), exist_ok=True)
     logger = setup_logging()  # Set up logging configuration
 
+    logger.error("sys.argv: ", sys.argv)
+    if len(sys.argv) >= 2:
+        job_config_filename = sys.argv[1]
+        logger.error("job_config_filename: %s", job_config_filename)
+
+
+
     # Read from stdin if any data is present
     stdin_data = sys.stdin.readline().strip()
     if stdin_data:
