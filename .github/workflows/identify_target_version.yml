@@ -1,6 +1,7 @@
 name: 'Identify Target Version'
 
 on:
+  workflow_dispatch:
   workflow_call:
     inputs:
       boinc_app_description:
@@ -31,7 +32,7 @@ jobs:
         id: new_version_number
         env:
           BOINC_APP_DESCRIPTION: ${{ inputs.boinc_app_description }}
-          SPECIFIED_VERSION: '1.21'
+          SPECIFIED_VERSION: ${{ inputs.specified_version }}
         run: |
           echo "BOINC_APP_DESCRIPTION: $BOINC_APP_DESCRIPTION"
           echo "SPECIFIED_VERSION: $SPECIFIED_VERSION"
