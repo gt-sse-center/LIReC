@@ -28,13 +28,13 @@ def setup_logging():
     stream_handler.setFormatter(formatter)
 
         # Define a flush method that flushes the outputs
-    class FlushHandler(logging.Handler):
-        def emit(self, record):
-            logging.StreamHandler.emit(self, record)
-            self.flush()
+    # class FlushHandler(logging.Handler):
+    #     def emit(self, record):
+    #         logging.StreamHandler.emit(self, record)
+    #         self.flush()
 
-    file_handler = FlushHandler()
-    stream_handler = FlushHandler()
+    # file_handler = FlushHandler()
+    # stream_handler = FlushHandler()
     
     # Add both handlers to the logger
     logger.addHandler(file_handler)
