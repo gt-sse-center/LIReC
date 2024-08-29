@@ -12,6 +12,47 @@ import logging
 
 MOD_PATH = 'LIReC.jobs.job_%s'
 
+def validate_config(config):
+    if not isinstance(config, dict):
+        return False, "Configuration should be a dictionary."
+    
+    if 'jobs_to_run' not in config:
+        return False, "Missing 'jobs_to_run' key in configuration."
+
+    if not isinstance(config['jobs_to_run'], list):
+        return False, "'jobs_to_run' should be a list."
+
+    for job in config['jobs_to_run']:
+        if not isinstance(job, tuple) or len(job) != 2:
+            return False, "'jobs_to_run' should contain tuples of (job_name, job_info)."
+
+        job_name, job_info = job
+        if not isinstance(job_name, str):
+            return False, "Job name should be a string."
+
+        if not isinstance(job_info, dict):
+            return False, "Job info should be a dictionary."
+
+        required_keys = {'args', 'run_async', 'async_cores'}
+        if not all(key in job_info for key in required_keys):
+            return False, "Missing required keys in job info."
+
+        args = job_info['args']
+        if not isinstance(args, dict):
+            return False, "'args' should be a dictionary."
+
+        expected_args_keys = {'degree', 'order', 'bulk', 'filters'}
+        if not all(key in args for key in expected_args_keys):
+            return False, "Missing required keys in args."
+
+        filters = args['filters']
+        if not isinstance(filters, dict):
+            return False, "'filters' should be a dictionary."
+
+        # Further checks can be added for filters' inner structure if necessary
+
+    return True, "Configuration is valid."
+
 
 def setup_logging():
     # Create a logger object
@@ -48,6 +89,7 @@ def main() -> None:
     logger = setup_logging()  # Set up logging configuration
 
     logger.error("sys.argv: %s", sys.argv)
+    config_data = configuration
     if len(sys.argv) >= 2:
         job_config_filename = sys.argv[1]
         logger.error("job_config_filename: %s", job_config_filename)
@@ -55,6 +97,10 @@ def main() -> None:
             with open(job_config_filename, 'r') as file:
                 job_config = json.load(file)
                 logger.info("Loaded job configuration: %s", json.dumps(job_config, indent=4))
+                valid, message = validate_config(job_config)
+                logger.info("validate_config job configuration: %s", message)
+                if valid:
+                    config_data = job_config
         except FileNotFoundError:
             logger.error("File not found: %s", job_config_filename)
         except json.JSONDecodeError:
@@ -76,9 +122,11 @@ def main() -> None:
 
     sys.stderr.write('Starting instance of WorkerPool...')
     worker_pool = WorkerPool()
-    sys.stderr.write('worker_pool.start([(MOD_PATH % name, config) for name, config in configuration["jobs_to_run"]]):')
-    sys.stderr.write([(MOD_PATH % name, config) for name, config in configuration['jobs_to_run']])
-    results = worker_pool.start([(MOD_PATH % name, config) for name, config in configuration['jobs_to_run']])
+    logger.info('worker_pool.start([(MOD_PATH % name, config) for name, config in configuration["jobs_to_run"]]):')
+    logger.info([(MOD_PATH % name, config) for name, config in config_data['jobs_to_run']])
+
+
+    results = worker_pool.start([(MOD_PATH % name, config) for name, config in config_data['jobs_to_run']])
 
     for module_path, timings in results:
         print('-------------------------------------')
