@@ -51,15 +51,6 @@ def setup_logging():
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     file_handler.setFormatter(formatter)
     stream_handler.setFormatter(formatter)
-
-        # Define a flush method that flushes the outputs
-    # class FlushHandler(logging.Handler):
-    #     def emit(self, record):
-    #         logging.StreamHandler.emit(self, record)
-    #         self.flush()
-
-    # file_handler = FlushHandler()
-    # stream_handler = FlushHandler()
     
     # Add both handlers to the logger
     logger.addHandler(file_handler)
