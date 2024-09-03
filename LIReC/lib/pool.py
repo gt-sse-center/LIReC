@@ -16,6 +16,7 @@ from math import inf, ceil
 from multiprocessing import Manager, Value, Process, Pipe
 from os import cpu_count, getpid
 from queue import Queue
+import sys
 from time import sleep, time
 from traceback import format_exc
 from typing import Tuple, Dict, Any
@@ -51,6 +52,8 @@ class WorkerPool:
 
     def __init__(self: WorkerPool) -> None:
         print('Starting __init__ WorkerPool ...')
+        print("Starting __init__ WorkerPool ... pool.py", file=sys.stderr)
+
         self.manager = Manager()
         self.job_queue = self.manager.Queue()
         self.log_queue = self.manager.Queue()

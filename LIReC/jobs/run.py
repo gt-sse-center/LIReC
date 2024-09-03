@@ -46,6 +46,7 @@ def setup_logging():
     # Create handlers for writing to file and stderr
     file_handler = logging.FileHandler('stderr.txt')
     stream_handler = logging.StreamHandler()
+    file_handler.flush()
 
     # Set the level and format for both handlers
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -55,6 +56,8 @@ def setup_logging():
     # Add both handlers to the logger
     logger.addHandler(file_handler)
     logger.addHandler(stream_handler)
+
+    logger.info("LOGGING from run.py enabled")
 
     return logger
 

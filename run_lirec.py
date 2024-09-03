@@ -30,8 +30,8 @@ def run_lirec():
     # Run LIReC (same as from run_jobs.py)
     # from LIReC.jobs import run
     # print("Running run.main()")
-    sys.stderr.write("Running run.main()\n")
-    print("Running run.main() from file=sys.stderr", file=sys.stderr)
+    sys.stderr.write("Running run.main() run_lirec\n")
+    print("Running run.main() from file=sys.stderr run_lirec", file=sys.stderr)
 
     run.main()
 

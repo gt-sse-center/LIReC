@@ -67,6 +67,7 @@ def setup_logging():
     # Create handlers for writing to file and stderr
     file_handler = logging.FileHandler(log_file_path)
     stream_handler = logging.StreamHandler()
+    file_handler.flush()
 
     # Set the level and format for both handlers
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -76,6 +77,8 @@ def setup_logging():
     # Add both handlers to the logger
     logger.addHandler(file_handler)
     logger.addHandler(stream_handler)
+
+    logger.info("LOGGING from job_poly_pslq_v1.py enabled")
 
     return logger
 
