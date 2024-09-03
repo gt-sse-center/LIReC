@@ -22,6 +22,7 @@ Configured as such:
     If present, no anti-relation logging can happen. Currently supported:
     'PcfCanonical': 'balanced_only' filters to only PCFs of balanced degrees if set to True.
 '''
+import json
 import mpmath as mp
 import os
 from itertools import combinations, product
@@ -84,6 +85,10 @@ def setup_logging():
 
 logger = setup_logging()
 
+def write_results_to_file(results, filename):
+    """Writes results to a JSON file."""
+    with open(filename, 'w') as f:
+        json.dump(results, f, indent=4)
 
 def get_filters(filters, const_type):
     filter_list = list(FILTERS) # copy!
@@ -152,6 +157,7 @@ def run_query(filters=None, degree=None, order=None, bulk=None):
     return results
 
 def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, manual=False):
+    results = []
     try: # whole thing must be wrapped so it gets logged
         #configure_logger('analyze_pcfs' if manual else f'pslq_const_worker_{getpid()}')
         i, total_cores, query_data = query_data # SEND_INDEX = True guarantees this
@@ -224,15 +230,19 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
             if not combination_is_old(consts, degree, order, old_relations):
                 # some leeway with the extra 10 precision
                 new_relations = [r for r in check_consts(consts, degree, order, test_prec) if r.precision > PRECISION_RATIO * min(c.precision for c in r.constants) - 10]
+                logger.info(f'Found new relation(s) on constants {[c.orig.const_id for c in consts]} with details: {new_relations}')
+
                 if new_relations:
                     logging.info(f'Found relation(s) on constants {[c.orig.const_id for c in consts]}!')
                     logger.info(f'Found relation(s) on constants {[c.orig.const_id for c in consts]}!')
                     try_count = 1
+                    results.extend(new_relations) #1
                     while try_count < 3:
                         try:
                             db.session.add_all([to_db_format(r) for r in new_relations])
                             db.session.commit()
                             old_relations += new_relations
+                            #results.extend(new_relations) #2 ask itay when to add results to json
                             break
                         except:
                             db.session.rollback()
@@ -250,6 +260,7 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
             #        cf.scanned_algo = dict()
             #    cf.scanned_algo[ALGORITHM_NAME] = int(time())
             #db.session.add_all(consts)
+        write_results_to_file(results, 'output.json')
         logging.info(f'finished - found {len(old_relations) - orig_size} results')
         logger.info(f'finished - found {len(old_relations) - orig_size} results')
         db.session.close()

@@ -92,9 +92,9 @@ def main() -> None:
 
 
     # Read from stdin if any data is present
-    stdin_data = sys.stdin.readline().strip()
-    if stdin_data:
-        logger.info(f"Received via stdin: {stdin_data}")
+    # stdin_data = sys.stdin.readline().strip()
+    # if stdin_data:
+    #     logger.info(f"Received via stdin: {stdin_data}")
 
     # Log to both file and stderr
     logger.info("logger.info Running run.main()")
