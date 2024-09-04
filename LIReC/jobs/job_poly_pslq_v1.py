@@ -272,6 +272,8 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
     except:
         logging.error(f'Exception in execute job: {format_exc()}')
         logger.error(f'Exception in execute job: {format_exc()}')
+        results.append(404)
+        write_results_to_file(results, 'output.json')
         # TODO "SSL connection has been closed unexpectedly" is a problem...
         # this is just a bandaid fix to make sure the system doesn't shit itself,
         # but we should instead figure out a way to be resistant to this and keep working normally.
