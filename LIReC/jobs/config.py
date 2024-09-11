@@ -8,7 +8,7 @@ configuration = {
                 }
             },
             'run_async': False,
-            'async_cores': 2
+            'async_cores': 1
         })
     ]
 }

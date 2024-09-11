@@ -234,7 +234,6 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
 
                 if new_relations:
                     logging.info(f'Found relation(s) on constants {[c.orig.const_id for c in consts]}!')
-                    logger.info(f'Found relation(s) on constants {[c.orig.const_id for c in consts]}!')
                     try_count = 1
                     results.extend(new_relations) #1
                     while try_count < 3:
@@ -269,7 +268,7 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
         logger.info('Commit done')
         
         return len(old_relations) - orig_size
-    except:
+    except Exception as e:
         logging.error(f'Exception in execute job: {format_exc()}')
         logger.error(f'Exception in execute job: {format_exc()}')
         results.append(404)
@@ -280,6 +279,7 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
         # right now this will just cause the search job to restart itself without
         # knowing where to return to. not great
         db.session.rollback()
+        raise e
         # not returning anything so summarize_results can see the error
 
 def summarize_results(results):
