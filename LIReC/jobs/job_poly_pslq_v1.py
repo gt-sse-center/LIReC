@@ -114,7 +114,7 @@ def get_const_class(const_type):
 def get_consts(const_type, filters):
     if const_type == 'Named': # Constant first intentionally! don't need extra details, but want to filter still
         precision = filters.get('global', {}).get('min_precision', None)
-        named = db.constants
+        named = [c.const_id for c in db.constants]
         return [DualConstant.from_db(c) for c in db._get_all(models.Constant) if c.const_id in named and c.precision is not None and (precision is None or c.precision >= precision)]
 
 def relation_is_new(consts, degree, order, other_relations):
@@ -142,7 +142,7 @@ def run_query(filters=None, degree=None, order=None, bulk=None):
     if 'PcfCanonical' in bulk_types:
         precision = filters.get('global', {}).get('min_precision', None)
         pcfs = [p.const_id for p in db.cfs]
-        consts = [c for c in db._get_all(models.Constant) if c.const_id in pcfs and c.precision is not None and (precision is None or c.precision >= precision)]
+        consts = [c.const_id for c in db._get_all(models.Constant) if c.const_id in pcfs and c.precision is not None and (precision is None or c.precision >= precision)]
         from random import shuffle
         shuffle(consts)
         results['PcfCanonical'] = consts[:bulk]
@@ -226,16 +226,18 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
             else:
                 print_index += 1
                 logging.debug(print_msg)
-                logger.debug(print_msg)
-            if not combination_is_old(consts, degree, order, old_relations):
+
+            if True: # not combination_is_old(consts, degree, order, old_relations):
                 # some leeway with the extra 10 precision
                 new_relations = [r for r in check_consts(consts, degree, order, test_prec) if r.precision > PRECISION_RATIO * min(c.precision for c in r.constants) - 10]
                 logger.info(f'Found new relation(s) on constants {[c.orig.const_id for c in consts]} with details: {new_relations}')
 
                 if new_relations:
                     logging.info(f'Found relation(s) on constants {[c.orig.const_id for c in consts]}!')
-                    try_count = 1
                     results.extend(new_relations) #1
+
+                    continue
+                    try_count = 1
                     while try_count < 3:
                         try:
                             db.session.add_all([to_db_format(r) for r in new_relations])
