@@ -33,6 +33,7 @@ jobs:
         env:
           BOINC_APP_DESCRIPTION: ${{ inputs.boinc_app_description }}
         run: |
+          BOINC_APP_DESCRIPTION="LIReC using BOINC instead of AWS (beta test)"
           echo "BOINC_APP_DESCRIPTION: $BOINC_APP_DESCRIPTION"
           echo "SPECIFIED_VERSION: $SPECIFIED_VERSION"
           if [[ -n "$SPECIFIED_VERSION" ]]; then
