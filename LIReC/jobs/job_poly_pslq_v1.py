@@ -227,15 +227,15 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
             print_msg = f'checking consts: {[c.orig.const_id for c in consts]}'
             if print_index >= PRINT_DELAY:
                 print_index = 0
-                logging.info(print_msg)
-                logger.info(print_msg)
+                #logging.info(print_msg)
+                #logger.info(print_msg)
             else:
                 print_index += 1
                 #logging.debug(print_msg)
             if True: # not combination_is_old(consts, degree, order, old_relations):
                 # some leeway with the extra 10 precision
                 new_relations = [r for r in check_consts(consts, degree, order, test_prec) if r.precision > PRECISION_RATIO * min(c.precision for c in r.constants) - 10]
-                logger.info(f'Found new relation(s) on constants {[c.orig.const_id for c in consts]} with details: {new_relations}')
+                #logger.info(f'Found new relation(s) on constants {[c.orig.const_id for c in consts]} with details: {new_relations}')
 
                 if new_relations:
                     logging.info(f'Found relation(s) on constants {[c.orig.const_id for c in consts]}!')
