@@ -32,7 +32,6 @@ jobs:
         id: new_version_number
         env:
           BOINC_APP_DESCRIPTION: ${{ inputs.boinc_app_description }}
-          SPECIFIED_VERSION: '1.42'
         run: |
           echo "BOINC_APP_DESCRIPTION: $BOINC_APP_DESCRIPTION"
           echo "SPECIFIED_VERSION: $SPECIFIED_VERSION"
