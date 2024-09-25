@@ -5,7 +5,7 @@ on:
   workflow_call:
     inputs:
       boinc_app_description:
-        description: 'LIReC using BOINC instead of AWS (beta test)'
+        description: 'The BOINC app "description" value from the BOINC server / database'
         required: true
         type: string
       specified_version:
