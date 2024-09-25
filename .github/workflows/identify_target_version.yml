@@ -5,7 +5,7 @@ on:
   workflow_call:
     inputs:
       boinc_app_description:
-        description: 'The BOINC app "description" value from the BOINC server / database'
+        description: 'LIReC using BOINC instead of AWS (beta test)'
         required: true
         type: string
       specified_version:
@@ -40,7 +40,7 @@ jobs:
             NEW_VERSION="$SPECIFIED_VERSION"
             echo "Using specified version: $NEW_VERSION"
           else
-            VERSION=$(sed -n "/<th class=\"bg-primary\" colspan=4>$(printf '%s\n' "$BOINC_APP_DESCRIPTION" | sed 's/[\^$.|?*+(){}]/\\&/g')<\/th>/,/<td>\([0-9].[0-9]\)/p" apps.php | sed -n 's/.*<td>\([0-9][0-9]*\.[0-9]*\)<\/td>.*/\1/ p')
+            VERSION=$(sed -n "/<th class=\"bg-primary\" colspan=4>$(printf '%s\n' "$BOINC_APP_DESCRIPTION" | sed 's/[\^$.|?*+{}]/\\&/g')<\/th>/,/<td>\([0-9].[0-9]\)/p" apps.php | sed -n 's/.*<td>\([0-9][0-9]*\.[0-9]*\)<\/td>.*/\1/ p')
             if [ -z "$VERSION" ]; then
               VERSION="1.0"
             fi
