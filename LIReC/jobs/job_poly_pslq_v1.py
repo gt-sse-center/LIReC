@@ -277,7 +277,7 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
             #        cf.scanned_algo = dict()
             #    cf.scanned_algo[ALGORITHM_NAME] = int(time())
             #db.session.add_all(consts)
-        write_results_to_file(results, 'output.json')
+        write_results_to_file(results[0], 'output.json')
         logging.info(f'finished - found {len(old_relations) - orig_size} results')
         logger.info(f'finished - found {len(old_relations) - orig_size} results')
         db.session.close()
