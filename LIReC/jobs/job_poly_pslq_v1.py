@@ -87,6 +87,8 @@ logger = setup_logging()
 
 def write_results_to_file(results, filename):
     """Writes results to a JSON file."""
+    logger.info(f'results:', results)
+
     with open(filename, 'w') as f:
         json.dump(results, f, indent=4)
 
@@ -239,7 +241,16 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
 
                 if new_relations:
                     logging.info(f'Found relation(s) on constants {[c.orig.const_id for c in consts]}!')
-                    results.extend(new_relations) #1
+                    # logging.info(f'new_relations:', new_relations)
+                    logging.info('test formating')
+                    # logging.info(to_db_format(r) for r in new_relations)
+                    # logging.info('Got new_relations: ' + ', '.join(str(rel) for rel in new_relations))
+#                     (logging.info(r.to_json())) for r in new_relations
+                    # logging.info(results)
+
+                    results.extend([r.to_json() for r in new_relations])
+                    # results = ([r.to_json() for r in new_relations])
+                    # results.extend(new_relations) #1
 
                     continue
                     try_count = 1
