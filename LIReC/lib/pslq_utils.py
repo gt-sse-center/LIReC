@@ -38,6 +38,13 @@ class PreciseConstant:
         with mp.workdps(max(self.precision, MIN_PSLQ_DPS)):
             self.value = mp.mpf(str(value))
         self.symbol = symbol
+    
+    def to_json(self) -> dict:
+        with mp.workdps(self.precision):
+            d = {'value': str(self.value), 'precision': self.precision}
+            if self.symbol:
+                d['symbol'] = str(self.symbol)
+            return d
 
 def _latexify(name: str) -> str:
     '''
@@ -185,6 +192,9 @@ class PolyPSLQRelation:
         if roi < self.ranges[3]:
             return Confidence.High
         return Confidence.Extreme
+    
+    def to_json(self) -> dict:
+        return {'constants' : [c.to_json() for c in self.constants], 'degree': self.degree, 'order': self.order, 'coeffs': self.coeffs }
 
 def cond_print(verbose, m):
     if verbose:
