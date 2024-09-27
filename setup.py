@@ -15,8 +15,7 @@ setup(
     install_requires=[
         'psycopg2>=2.8.6',
         'sqlalchemy>=2.0.5',
-        
-        'gmpy2>=2.1.5',
+        'gmpy2==2.2.0a1',
         'mpmath>=1.2.1',
         'sympy>=1.5.1'
     ]

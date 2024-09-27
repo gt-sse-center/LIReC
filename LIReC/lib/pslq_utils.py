@@ -38,6 +38,13 @@ class PreciseConstant:
         with mp.workdps(max(self.precision, MIN_PSLQ_DPS)):
             self.value = mp.mpf(str(value))
         self.symbol = symbol
+    
+    def to_json(self) -> dict:
+        with mp.workdps(self.precision):
+            d = {'value': str(self.value), 'precision': self.precision}
+            if self.symbol:
+                d['symbol'] = str(self.symbol)
+            return d
 
 def _latexify(name: str) -> str:
     '''
@@ -50,7 +57,7 @@ def _latexify(name: str) -> str:
         return name
     
     if name[0] == 'e':
-        exp = Constants.latexify(name[1:])
+        exp = _latexify(name[1:])
         if len(exp) > 1:
             exp = f'{{{exp}}}'
         return f'e^{exp}'
@@ -60,7 +67,7 @@ def _latexify(name: str) -> str:
     
     root = match(r'root(\d+)of(\w+)', name)
     if root and root[0] == name:
-        return fr'\sqrt[{root[1]}]{{{Constants.latexify(root[2])}}}'
+        return fr'\sqrt[{root[1]}]{{{_latexify(root[2])}}}'
     
     groups = match(r'([A-Za-z]*)(_?)([A-Za-z]*)(\w*)', name)
     if groups[0] != name:
@@ -185,6 +192,9 @@ class PolyPSLQRelation:
         if roi < self.ranges[3]:
             return Confidence.High
         return Confidence.Extreme
+    
+    def to_json(self) -> dict:
+        return {'constants' : [c.to_json() for c in self.constants], 'degree': self.degree, 'order': self.order, 'coeffs': self.coeffs }
 
 def cond_print(verbose, m):
     if verbose:

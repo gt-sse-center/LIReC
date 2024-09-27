@@ -1,6 +1,8 @@
 import subprocess
 import sys
 import time
+from LIReC.jobs import run
+
 
 def install_system_dependencies():
     # Install system packages
@@ -23,20 +25,30 @@ def print_status():
         print("LIReC is running...")
         time.sleep(30)  # Sleep for 30 seconds
 
-    # Run status printer in parallel
-    import threading
-    threading.Thread(target=print_status, daemon=True).start()
 def run_lirec():
     # Assuming LIReC has an entry point in its package
     # Run LIReC (same as from run_jobs.py)
-    from LIReC.jobs import run
+    # from LIReC.jobs import run
+    # print("Running run.main()")
+    sys.stderr.write("Running run.main() run_lirec\n")
+    print("Running run.main() from file=sys.stderr run_lirec", file=sys.stderr)
+
     run.main()
 
 def main():
     # install_system_dependencies()
     #install_python()
-    print_status()
-    install_lirec()
+    # print_status()
+    # install_lirec()
+    # run_lirec()
+
+    # Start the print_status function in a background thread
+    # status_thread = threading.Thread(target=print_status, daemon=True)
+    # status_thread.start()
+
+    # The rest of the functions can now execute without being blocked by print_status
+    # install_python()
+    # install_lirec()
     run_lirec()
 
 if __name__ == "__main__":

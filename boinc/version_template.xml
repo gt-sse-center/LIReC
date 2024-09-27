@@ -1,7 +1,7 @@
 <!-- This file is a necessary component to a BOINC app version -->
 <version>
-	<file>
-        <physical_name>{{WRAPPER}}</physical_name>
+    <file>
+        <physical_name>{{WRAPPER}}.exe</physical_name>
         <main_program/>
     </file>
     <file>

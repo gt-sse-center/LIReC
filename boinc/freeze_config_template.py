@@ -4,7 +4,7 @@ Parameters EXECUTABLE and APP_DESCRIPTION come from the GitHub workflow
 """
 from cx_Freeze import setup, Executable
 
-build_options = {'packages': [],
+build_options = {'packages': ['gmpy2'],
                  'excludes': ['tkinter'],
                  'build_exe': 'build/executable' # sets name of folder under build folder in which executables end up
                  }
