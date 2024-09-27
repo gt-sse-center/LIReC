@@ -86,11 +86,21 @@ def setup_logging():
 logger = setup_logging()
 
 def write_results_to_file(results, filename):
-    """Writes results to a JSON file."""
-    logger.info(f'results:', results)
+    """Writes or appends results to a JSON file while maintaining JSON format."""
+    # existing_data = [2]
+    if (len(results) == 0):
+        logging.info(f'empty result, cancel writting')
+        return
 
-    with open(filename, 'w') as f:
-        json.dump(results, f, indent=4)
+    logging.info(f'results[0]:{results[0]}')
+    # Write back to file
+    with open(filename, 'w') as file:
+        json.dump(results, file, indent=4)
+
+    # with open("output2.json", 'w') as file:
+    #     json.dump(results, file, indent=4)
+
+    logger.info(f'Results written to {filename}')
 
 def get_filters(filters, const_type):
     filter_list = list(FILTERS) # copy!
@@ -217,6 +227,9 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
         # because finding new relations depends on the new relations we found so far!
         print_index, PRINT_DELAY = 0, 100
         for consts in product(*subsets):
+            if len(results) >= 3:
+                logging.info(f'surpassed number of result, terminating')
+                break
             if i >= last:
                 logging.info(f'surpassed end of search space slice, terminating')
                 break
@@ -241,14 +254,11 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
 
                 if new_relations:
                     logging.info(f'Found relation(s) on constants {[c.orig.const_id for c in consts]}!')
-                    # logging.info(f'new_relations:', new_relations)
-                    logging.info('test formating')
-                    # logging.info(to_db_format(r) for r in new_relations)
-                    # logging.info('Got new_relations: ' + ', '.join(str(rel) for rel in new_relations))
-#                     (logging.info(r.to_json())) for r in new_relations
-                    # logging.info(results)
 
                     results.extend([r.to_json() for r in new_relations])
+                    logging.info('results.len: %d', len(results))
+                    # logging.info(f'results[0]: {results[0]}')
+
                     # results = ([r.to_json() for r in new_relations])
                     # results.extend(new_relations) #1
 
@@ -277,9 +287,12 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
             #        cf.scanned_algo = dict()
             #    cf.scanned_algo[ALGORITHM_NAME] = int(time())
             #db.session.add_all(consts)
-        write_results_to_file(results[0], 'output.json')
-        logging.info(f'finished - found {len(old_relations) - orig_size} results')
-        logger.info(f'finished - found {len(old_relations) - orig_size} results')
+        write_results_to_file(results, 'output.json')
+        # logging.info('results[0] - found %d', results[0])
+
+        logging.info('finished - found %d', len(results))
+        # logging.info(f'finished - found {len(old_relations) - orig_size} results')
+        # logger.info(f'finished - found {len(old_relations) - orig_size} results')
         db.session.close()
         
         logging.info('Commit done')
@@ -289,8 +302,8 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
     except Exception as e:
         logging.error(f'Exception in execute job: {format_exc()}')
         logger.error(f'Exception in execute job: {format_exc()}')
-        results.append(404)
-        write_results_to_file(results, 'output.json')
+        # results.append(404)
+        # write_results_to_file(results, 'output.json')
         # TODO "SSL connection has been closed unexpectedly" is a problem...
         # this is just a bandaid fix to make sure the system doesn't shit itself,
         # but we should instead figure out a way to be resistant to this and keep working normally.
