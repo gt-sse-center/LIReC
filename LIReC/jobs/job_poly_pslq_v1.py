@@ -22,7 +22,9 @@ Configured as such:
     If present, no anti-relation logging can happen. Currently supported:
     'PcfCanonical': 'balanced_only' filters to only PCFs of balanced degrees if set to True.
 '''
+import json
 import mpmath as mp
+import os
 from itertools import combinations, product
 import logging
 from math import ceil
@@ -54,6 +56,52 @@ FILTERS = [
         #or_(models.Cf.scanned_algo == None, ~models.Cf.scanned_algo.has_key(ALGORITHM_NAME)) # TODO USE scan_history TABLE!!!
         ]
 
+def setup_logging():
+    # Get the absolute path to the root of the project
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    log_file_path = os.path.join(base_dir, 'stderr.txt')
+
+    # Create a logger object
+    logger = logging.getLogger('LIReC')
+    logger.setLevel(logging.DEBUG)  # Set the logging level to debug to capture all messages
+
+    # Create handlers for writing to file and stderr
+    file_handler = logging.FileHandler(log_file_path)
+    stream_handler = logging.StreamHandler()
+    file_handler.flush()
+
+    # Set the level and format for both handlers
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    stream_handler.setFormatter(formatter)
+
+    # Add both handlers to the logger
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
+
+    logger.info("LOGGING from job_poly_pslq_v1.py enabled")
+
+    return logger
+
+logger = setup_logging()
+
+def write_results_to_file(results, filename):
+    """Writes or appends results to a JSON file while maintaining JSON format."""
+    # existing_data = [2]
+    if (len(results) == 0):
+        logging.info(f'empty result, cancel writting')
+        return
+
+    logging.info(f'results[0]:{results[0]}')
+    # Write back to file
+    with open(filename, 'w') as file:
+        json.dump(results, file, indent=4)
+
+    # with open("output2.json", 'w') as file:
+    #     json.dump(results, file, indent=4)
+
+    logger.info(f'Results written to {filename}')
+
 def get_filters(filters, const_type):
     filter_list = list(FILTERS) # copy!
     if 'global' in filters:
@@ -78,7 +126,7 @@ def get_const_class(const_type):
 def get_consts(const_type, filters):
     if const_type == 'Named': # Constant first intentionally! don't need extra details, but want to filter still
         precision = filters.get('global', {}).get('min_precision', None)
-        named = db.constants
+        named = [c.const_id for c in db.constants]
         return [DualConstant.from_db(c) for c in db._get_all(models.Constant) if c.const_id in named and c.precision is not None and (precision is None or c.precision >= precision)]
 
 def relation_is_new(consts, degree, order, other_relations):
@@ -99,12 +147,14 @@ def run_query(filters=None, degree=None, order=None, bulk=None):
         return []
     bulk = bulk if bulk else BULK_SIZE
     logging.info(f'Querying constants... may take a while')
+    logger.info(f'Querying constants... may take a while')
+
     # TODO replace with _get_all and pythonic filtering
     results = {}
     if 'PcfCanonical' in bulk_types:
         precision = filters.get('global', {}).get('min_precision', None)
         pcfs = [p.const_id for p in db.cfs]
-        consts = [c for c in db._get_all(models.Constant) if c.const_id in pcfs and c.precision is not None and (precision is None or c.precision >= precision)]
+        consts = [c.const_id for c in db._get_all(models.Constant) if c.const_id in pcfs and c.precision is not None and (precision is None or c.precision >= precision)]
         from random import shuffle
         shuffle(consts)
         results['PcfCanonical'] = consts[:bulk]
@@ -114,16 +164,22 @@ def run_query(filters=None, degree=None, order=None, bulk=None):
     # that allows us more variety in testing the CFs...
     # TODO what to do if results is unintentionally empty?
     logging.info(f'Query done, batch size is {sum(len(results[k]) for k in results)}')
+    logger.info(f'Query done, batch size is {sum(len(results[k]) for k in results)}')
+
     return results
 
 def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, manual=False):
+    results = []
     try: # whole thing must be wrapped so it gets logged
         #configure_logger('analyze_pcfs' if manual else f'pslq_const_worker_{getpid()}')
         i, total_cores, query_data = query_data # SEND_INDEX = True guarantees this
+        if i == -1: # tells us that we're running sync, but just set i = 0 and continue as normal
+            i = 0
         global_filters = filters.get('global', {})
         filters.pop('global', 0) # instead of del so we can silently dispose of global even if it doesn't exist
         if not filters:
             logging.error('No filters found! Aborting...')
+            logger.error('No filters found! Aborting...')
             return 0 # this shouldn't happen unless pool_handler changes, so just in case...
         keys = filters.keys()
         for const_type in keys:
@@ -131,6 +187,7 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
                 msg = f'Unsupported filter type {const_type} will be ignored! Must be one of {SUPPORTED_TYPES}.'
                 print(msg)
                 logging.warn(msg)
+                logger.warn(msg)
                 del filters[const_type]
             elif 'count' not in filters[const_type]:
                 filters[const_type]['count'] = DEFAULT_CONST_COUNT
@@ -138,6 +195,7 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
         degree = degree if degree else DEFAULT_DEGREE
         order = order if order else DEFAULT_ORDER
         logging.info(f'Checking against {total_consts} constants at a time, subdivided into {({k : filters[k]["count"] for k in filters})}, using degree-{degree} relations')
+        logger.info(f'Checking against {total_consts} constants at a time, subdivided into {({k : filters[k]["count"] for k in filters})}, using degree-{degree} relations')
         if degree > total_consts * order:
             degree = total_consts * order
             logging.info(f'redundant degree detected! reducing to {degree}')
@@ -157,6 +215,7 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
         subsets = [list(combinations(add_addons(x, const_type, filters, addons), filters[const_type]['count'])) for const_type, x in subsets]
         total_options = reduce(mul, [len(x) for x in subsets])
         first, last = ceil((total_options * i) / total_cores), ceil((total_options * (i + 1)) / total_cores)
+        logging.info(f'search space slice is between {first} and {last}')
         i = 0
         
         # TODO mass query the many-to-many table! the first call to relation_is_new takes too long!
@@ -166,32 +225,51 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
         # even if the commented code were to be uncommented and implemented for
         # the scan_history table, this loop still can't be turned into list comprehension
         # because finding new relations depends on the new relations we found so far!
-        print_index, PRINT_DELAY = 0, 10
+        print_index, PRINT_DELAY = 0, 100
         for consts in product(*subsets):
+            if len(results) >= 2:
+                logging.info(f'surpassed number of result, terminating')
+                break
             if i >= last:
+                logging.info(f'surpassed end of search space slice, terminating')
                 break
             i += 1
             if i < first:
                 continue
+            if i == first:
+                logging.info(f'found start of search space slice, beginning search')
             consts = [c for t in consts for c in t] # need to flatten...
             print_msg = f'checking consts: {[c.orig.const_id for c in consts]}'
             if print_index >= PRINT_DELAY:
                 print_index = 0
-                logging.info(print_msg)
+                #logging.info(print_msg)
+                #logger.info(print_msg)
             else:
                 print_index += 1
-                logging.debug(print_msg)
-            if not combination_is_old(consts, degree, order, old_relations):
+                #logging.debug(print_msg)
+            if True: # not combination_is_old(consts, degree, order, old_relations):
                 # some leeway with the extra 10 precision
                 new_relations = [r for r in check_consts(consts, degree, order, test_prec) if r.precision > PRECISION_RATIO * min(c.precision for c in r.constants) - 10]
+                #logger.info(f'Found new relation(s) on constants {[c.orig.const_id for c in consts]} with details: {new_relations}')
+
                 if new_relations:
                     logging.info(f'Found relation(s) on constants {[c.orig.const_id for c in consts]}!')
+
+                    results.extend([r.to_json() for r in new_relations])
+                    logging.info('results.len: %d', len(results))
+                    # logging.info(f'results[0]: {results[0]}')
+
+                    # results = ([r.to_json() for r in new_relations])
+                    # results.extend(new_relations) #1
+
+                    continue
                     try_count = 1
                     while try_count < 3:
                         try:
                             db.session.add_all([to_db_format(r) for r in new_relations])
                             db.session.commit()
                             old_relations += new_relations
+                            #results.extend(new_relations) #2 ask itay when to add results to json
                             break
                         except:
                             db.session.rollback()
@@ -199,31 +277,45 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
                             #db = access.LIReC_DB()
                             if try_count == 1:
                                 logging.warn('Failed to commit once, trying again.')
+                                logger.warn('Failed to commit once, trying again.')
                             else:
                                 logging.error(f'Could not commit relation(s): {format_exc()}')
+                                logger.error(f'Could not commit relation(s): {format_exc()}')
                         try_count += 1
             #for cf in consts:
             #    if not cf.scanned_algo:
             #        cf.scanned_algo = dict()
             #    cf.scanned_algo[ALGORITHM_NAME] = int(time())
             #db.session.add_all(consts)
-        logging.info(f'finished - found {len(old_relations) - orig_size} results')
+        write_results_to_file(results, 'output.json')
+        # logging.info('results[0] - found %d', results[0])
+
+        logging.info('finished - found %d', len(results))
+        # logging.info(f'finished - found {len(old_relations) - orig_size} results')
+        # logger.info(f'finished - found {len(old_relations) - orig_size} results')
         db.session.close()
         
         logging.info('Commit done')
+        logger.info('Commit done')
         
         return len(old_relations) - orig_size
-    except:
+    except Exception as e:
         logging.error(f'Exception in execute job: {format_exc()}')
+        logger.error(f'Exception in execute job: {format_exc()}')
+        # results.append(404)
+        # write_results_to_file(results, 'output.json')
         # TODO "SSL connection has been closed unexpectedly" is a problem...
         # this is just a bandaid fix to make sure the system doesn't shit itself,
         # but we should instead figure out a way to be resistant to this and keep working normally.
         # right now this will just cause the search job to restart itself without
         # knowing where to return to. not great
         db.session.rollback()
+        raise e
         # not returning anything so summarize_results can see the error
 
 def summarize_results(results):
     if any(r for r in results if r==None):
         logging.warn(f'At least one of the workers had an exception! Check logs')
+        logger.warn(f'At least one of the workers had an exception! Check logs')
     logging.info(f'In total found {sum(r for r in results if r)} relations')
+    logger.info(f'In total found {sum(r for r in results if r)} relations')

@@ -69,6 +69,7 @@ jobs:
           brew link postgresql
       - name: "Install dependencies and cxFreeze"
         run: |
+            #apt-get -y install libpq-dev libgmp-dev libgmp3-dev libmpfr-dev libmpc-dev
             pip install -e .
             pip install --upgrade cx_Freeze
       - name: "Download previously created freeze configuration"
