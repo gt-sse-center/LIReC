@@ -5,7 +5,8 @@ on:
     inputs:
       boinc_app_description:
         description: 'The BOINC app "description" value from the BOINC server / database'
-        required: true
+        default: 'LIReC using BOINC instead of AWS'
+        required: false
         type: string
   workflow_call:
     inputs:
