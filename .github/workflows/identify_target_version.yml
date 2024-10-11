@@ -32,7 +32,7 @@ jobs:
         shell: bash
         id: new_version_number
         env:
-          BOINC_APP_DESCRIPTION: 'IJOUYGTFHGCHVJKGJFCGHVJB${{ inputs.boinc_app_description }}'
+          BOINC_APP_DESCRIPTION: ${{ inputs.boinc_app_description }}
         run: |
           VERSION=$(sed -n "/<th class=\"bg-primary\" colspan=4>$(printf '%s\n' "$BOINC_APP_DESCRIPTION" | sed 's/[\^$.|?*+{}]/\\&/g')<\/th>/,/<td>\([0-9].[0-9]\)/p" apps.php | sed -n 's/.*<td>\([0-9][0-9]*\.[0-9]*\)<\/td>.*/\1/ p')
           if [ -z "$VERSION" ]; then
