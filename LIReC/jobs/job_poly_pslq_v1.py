@@ -227,7 +227,7 @@ def execute_job(query_data, filters=None, degree=None, order=None, bulk=None, ma
         # because finding new relations depends on the new relations we found so far!
         print_index, PRINT_DELAY = 0, 100
         for consts in product(*subsets):
-            if len(results) >= 3:
+            if len(results) >= 2:
                 logging.info(f'surpassed number of result, terminating')
                 break
             if i >= last:
