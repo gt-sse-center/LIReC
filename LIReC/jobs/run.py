@@ -2,7 +2,6 @@
 '''
 import json
 import signal
-#import numpy as np
 import os
 import sys
 from LIReC.jobs.config import configuration
@@ -75,7 +74,7 @@ def main() -> None:
             with open(job_config_filename, 'r') as file:
                 job_config = json.load(file)
                 logger.info("Loaded job configuration: %s", json.dumps(job_config, indent=4))
-                valid, message = validate_config(job_config)
+                valid, message = validate_config(job_config) # making sure config in parameter is valid, if it isn't then config.py will be used
                 job_config['jobs_to_run'] = [tuple(job) for job in job_config['jobs_to_run']]
 
                 logger.info("validate_config job configuration: %s", message)
@@ -88,24 +87,7 @@ def main() -> None:
         except Exception as e:
             logger.error("Error reading file %s: %s", job_config_filename, e)
 
-
-
-
-    # Read from stdin if any data is present
-    # stdin_data = sys.stdin.readline().strip()
-    # if stdin_data:
-    #     logger.info(f"Received via stdin: {stdin_data}")
-
-    # Log to both file and stderr
-    logger.info("logger.info Running run.main()")
-    logger.error("logger.error This is an error message with details.")
-
-    sys.stderr.write('Starting instance of WorkerPool...')
     worker_pool = WorkerPool()
-    logger.info('worker_pool.start([(MOD_PATH % name, config) for name, config in configuration["jobs_to_run"]]):')
-    logger.info([(MOD_PATH % name, config) for name, config in config_data['jobs_to_run']])
-
-
     results = worker_pool.start([(MOD_PATH % name, config) for name, config in config_data['jobs_to_run']])
 
     for module_path, timings in results:

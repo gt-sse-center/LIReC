@@ -76,11 +76,8 @@ jobs:
         SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
       run: |
         echo "$SIGNING_KEY" > key
-        ls
         cd app.$NEW_VERSION-$PLATFORM
         zip -r ../app.$NEW_VERSION-$PLATFORM.zip .
-        cd ..
-        ls
     - name: "Sign files"
       env:
         SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
