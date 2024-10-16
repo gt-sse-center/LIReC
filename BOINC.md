@@ -16,7 +16,9 @@ The LIReC application, as configured for the BOINC platform, operates primarily 
 ### File and Job Management
 
 - **Input Files Directory**: All JSON configuration files should be placed in:
-/home/boincadm/projects/boinc/data/lirec_input
+  ```
+  /home/boincadm/projects/boinc/data/lirec_input
+  ```
 
 This directory contains the list of JSON files that will be used to configure the LIReC jobs.
 
@@ -29,7 +31,7 @@ This directory contains the list of JSON files that will be used to configure th
   ```
   ./tasks_avail_workgen_lirec
   ```
-  This script will launch a job for each JSON file found in the `lirec_input` directory and subsequently clear the folder.
+  This script will launch a job for each JSON file found in the `data/lirec_input` directory and subsequently clear the folder.
 
 ### Monitoring and Retrieving Results
 
